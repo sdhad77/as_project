@@ -1,50 +1,63 @@
-package
-{
+package 
+{  
 	import flash.desktop.NativeApplication;  
+	import flash.events.Event;
+	import flash.events.IOErrorEvent;
+	import flash.events.ProgressEvent;
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
-	import flash.events.TouchEvent;
-	import flash.events.Event;
-	import flash.ui.Multitouch;
-	import flash.ui.MultitouchInputMode;
+	import flash.display.Loader;
+	import flash.net.URLRequest;
+	import flash.display.Bitmap;
 	
-	public class as_project extends Sprite
-	{
+	public class as_project extends Sprite 
+	{ 
+		var loader:Loader = new Loader;
+		var images:Array = [];
+		
 		public function as_project() 
 		{
 			stage.scaleMode = StageScaleMode.NO_SCALE;  
 			stage.align = StageAlign.TOP_LEFT;
-			stage.addEventListener(Event.DEACTIVATE, deactivate);
+			stage.addEventListener(Event.DEACTIVATE, deactivate);  
 			
-			Multitouch.inputMode = MultitouchInputMode.TOUCH_POINT; 
+			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, completeHandler);
+			loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, errorHandler);
+			loader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, progressHandler);
 			
-			var mySprite:Sprite = new Sprite(); 
-			mySprite.graphics.beginFill(0x336699); 
-			mySprite.graphics.drawRect(0,0,300,300); 
-			addChild(mySprite); 
-			
-			mySprite.addEventListener(TouchEvent.TOUCH_BEGIN, onTouchBegin); 
-			mySprite.addEventListener(TouchEvent.TOUCH_MOVE, onTouchMove); 
-			mySprite.addEventListener(TouchEvent.TOUCH_END, onTouchEnd); 
+			loader.load(new URLRequest("http://worldhdwallpaper.com/wp-content/uploads/2013/03/lion-background-colorful-.jpg.jpg"));
 		}
-		private function onTouchBegin(evt:TouchEvent): void { 
-			evt.target.startTouchDrag(evt.touchPointID); 
-		} 
 		
-		private function onTouchMove(evt:TouchEvent): void { 
-			evt.target.alpha = 0.5; 
-		} 
-		
-		private function onTouchEnd(evt:TouchEvent): void { 
-			evt.target.stopTouchDrag(evt.touchPointID); 
-			evt.target.alpha = 1; 
+		protected function completeHandler(e:Event):void {
+			// you can pull out the loader content and cast it as a bitmap...
+			images.push(loader.content as Bitmap);
+			
+			// or you can simply add the loader to the stage
+			addChild(loader);
+			clearListeners();
+			
 		}
-	
+		
+		protected function errorHandler(e:IOErrorEvent):void {
+			trace("Error loading image! Here's the error:\n" + e);
+			clearListeners();
+		}
+		
+		protected function progressHandler(e:ProgressEvent):void {
+			trace("Load is " + (100 * e.bytesLoaded / e.bytesTotal) + " percent complete...");
+		}
+		
+		protected function clearListeners():void {
+			loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, completeHandler);
+			loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, errorHandler);
+			loader.contentLoaderInfo.removeEventListener(ProgressEvent.PROGRESS, progressHandler);
+		}
+		
 		private function deactivate(e:Event):void   
 		{  
 			// auto-close  
 			NativeApplication.nativeApplication.exit();  
 		}  
-	}
-}
+	} 
+} 
