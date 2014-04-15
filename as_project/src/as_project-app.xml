@@ -110,7 +110,7 @@
 		<!-- <softKeyboardBehavior></softKeyboardBehavior> -->
 
 	<autoOrients>true</autoOrients>
-        <fullScreen>false</fullScreen>
+        <fullScreen>true</fullScreen>
         <visible>true</visible>
     </initialWindow>
 
