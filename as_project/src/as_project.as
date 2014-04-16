@@ -1,49 +1,60 @@
 package {
-	import flash.filesystem.*;
 	import flash.display.Sprite;
-	import flash.utils.ByteArray;
-	import flash.text.TextField;
-	import flash.utils.CompressionAlgorithm;
+	import flash.events.*;
+	import flash.net.FileReference;
+	import flash.net.URLRequest;
 	
-	public class as_project extends Sprite
-	{
-		public function as_project()
-		{
-			var bytes:ByteArray = new ByteArray();
-			var myLabel:TextField = new TextField();
-			myLabel.x = 150;
-			myLabel.y = 150;
-			myLabel.width = 200;
-			addChild(myLabel);
-			var myXML:XML =
-				<order>
-				<item id='1'>
-				<menuName>burger</menuName>
-				<price>3.95</price>
-				</item>
-				<item id='2'>
-				<menuName>fries</menuName>
-				<price>1.45</price>
-				</item>
-				</order>;
-			// Write XML object to ByteArray
-			bytes.writeObject(myXML);
-			bytes.position = 0;//reset position to beginning
-			bytes.compress(CompressionAlgorithm.DEFLATE);// compress ByteArray
-			writeBytesToFile("order.xml", bytes);
-			myLabel.text = "Wrote order file to desktop!";
+	public class as_project extends Sprite {
+		private var downloadURL:URLRequest;
+		private var fileName:String = "gpl-3.0.txt";
+		private var file:FileReference;
+		
+		public function as_project() {
+			downloadURL = new URLRequest();
+			downloadURL.url = "http://www.gnu.org/licenses/gpl-3.0.txt";
+			file = new FileReference();
+			configureListeners(file);
+			file.download(downloadURL, fileName);
 		}
-		private function writeBytesToFile(fileName:String, data:ByteArray):void
-		{
-			var outFile:File = File.desktopDirectory; // dest folder is desktop
-			outFile = outFile.resolvePath(fileName); // name of file to write
-			var outStream:FileStream = new FileStream();
-			// open output file stream in WRITE mode
-			outStream.open(outFile, FileMode.WRITE);
-			// write out the file
-			outStream.writeBytes(data, 0, data.length);
-			// close it
-			outStream.close();
+		
+		private function configureListeners(dispatcher:IEventDispatcher):void {
+			dispatcher.addEventListener(Event.CANCEL, cancelHandler);
+			dispatcher.addEventListener(Event.COMPLETE, completeHandler);
+			dispatcher.addEventListener(IOErrorEvent.IO_ERROR, ioErrorHandler);
+			dispatcher.addEventListener(Event.OPEN, openHandler);
+			dispatcher.addEventListener(ProgressEvent.PROGRESS, progressHandler);
+			dispatcher.addEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);
+			dispatcher.addEventListener(Event.SELECT, selectHandler);
+		}
+		
+		private function cancelHandler(event:Event):void {
+			trace("cancelHandler: " + event);
+		}
+		
+		private function completeHandler(event:Event):void {
+			trace("completeHandler: " + event);
+		}
+		
+		private function ioErrorHandler(event:IOErrorEvent):void {
+			trace("ioErrorHandler: " + event);
+		}
+		
+		private function openHandler(event:Event):void {
+			trace("openHandler: " + event);
+		}
+		
+		private function progressHandler(event:ProgressEvent):void {
+			var file:FileReference = FileReference(event.target);
+			trace("progressHandler name=" + file.name + " bytesLoaded=" + event.bytesLoaded + " bytesTotal=" + event.bytesTotal);
+		}
+		
+		private function securityErrorHandler(event:SecurityErrorEvent):void {
+			trace("securityErrorHandler: " + event);
+		}
+		
+		private function selectHandler(event:Event):void {
+			var file:FileReference = FileReference(event.target);
+			trace("selectHandler: name=" + file.name + " URL=" + downloadURL.url);
 		}
 	}
 }
