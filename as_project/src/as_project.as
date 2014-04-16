@@ -2,43 +2,48 @@ package {
 	import flash.filesystem.*;
 	import flash.display.Sprite;
 	import flash.utils.ByteArray;
-	import flash.utils.CompressionAlgorithm;
 	import flash.text.TextField;
+	import flash.utils.CompressionAlgorithm;
 	
 	public class as_project extends Sprite
 	{
 		public function as_project()
 		{
-			var inBytes:ByteArray = new ByteArray();
-			// define text area for displaying XML content
-			var myTxt:TextField = new TextField();
-			myTxt.width = 550;
-			myTxt.height = 400;
-			addChild(myTxt);
-			//display objectEncoding and file heading
-			myTxt.text = "Object encoding is: " + inBytes.objectEncoding + "\n\n" + "order file: \n\n";
-			readFileIntoByteArray("order.xml", inBytes);
-			inBytes.position = 0; // reset position to beginning
-			inBytes.uncompress(CompressionAlgorithm.DEFLATE);
-			inBytes.position = 0;//reset position to beginning
-			// read XML Object
-			var orderXML:XML = inBytes.readObject();
-			// for each node in orderXML
-			for each (var child:XML in orderXML)
-			{
-				// append child node to text area
-				myTxt.text += child + "\n";
-			}
+			var bytes:ByteArray = new ByteArray();
+			var myLabel:TextField = new TextField();
+			myLabel.x = 150;
+			myLabel.y = 150;
+			myLabel.width = 200;
+			addChild(myLabel);
+			var myXML:XML =
+				<order>
+				<item id='1'>
+				<menuName>burger</menuName>
+				<price>3.95</price>
+				</item>
+				<item id='2'>
+				<menuName>fries</menuName>
+				<price>1.45</price>
+				</item>
+				</order>;
+			// Write XML object to ByteArray
+			bytes.writeObject(myXML);
+			bytes.position = 0;//reset position to beginning
+			bytes.compress(CompressionAlgorithm.DEFLATE);// compress ByteArray
+			writeBytesToFile("order.xml", bytes);
+			myLabel.text = "Wrote order file to desktop!";
 		}
-		// read specified file into byte array
-		private function readFileIntoByteArray(fileName:String, data:ByteArray):void
+		private function writeBytesToFile(fileName:String, data:ByteArray):void
 		{
-			var inFile:File = File.desktopDirectory; // source folder is desktop
-			inFile = inFile.resolvePath(fileName); // name of file to read
-			var inStream:FileStream = new FileStream();
-			inStream.open(inFile, FileMode.READ);
-			inStream.readBytes(data);
-			inStream.close();
+			var outFile:File = File.desktopDirectory; // dest folder is desktop
+			outFile = outFile.resolvePath(fileName); // name of file to write
+			var outStream:FileStream = new FileStream();
+			// open output file stream in WRITE mode
+			outStream.open(outFile, FileMode.WRITE);
+			// write out the file
+			outStream.writeBytes(data, 0, data.length);
+			// close it
+			outStream.close();
 		}
 	}
 }
