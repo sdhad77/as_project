@@ -1,48 +1,46 @@
-package 
-{  
-	import flash.desktop.NativeApplication;
+package {
+	import flash.filesystem.*;
 	import flash.display.Sprite;
-	import flash.display.StageAlign;
-	import flash.display.StageScaleMode;
-	import flash.events.Event;
 	import flash.utils.ByteArray;
+	import flash.utils.CompressionAlgorithm;
+	import flash.text.TextField;
 	
-	public class as_project extends Sprite 
-	{ 
-		private var mySprite:Sprite = new Sprite;
-		private var stream:ByteArray = new ByteArray();
-		
-		public function as_project() 
+	public class as_project extends Sprite
+	{
+		public function as_project()
 		{
-			stage.scaleMode = StageScaleMode.NO_SCALE;  
-			stage.align = StageAlign.TOP_LEFT;
-			stage.addEventListener(Event.DEACTIVATE, deactivate);  
-			
-			// define the grocery list Array
-			var groceries:Array = ["milk", 4.50, "soup", 1.79, "eggs", 3.19, "bread" , 2.35]
-			// define the ByteArray
-			var bytes:ByteArray = new ByteArray();
-			// for each item in the array
-			for (var i:int = 0; i < groceries.length; i++) {
-				bytes.writeUTFBytes(groceries[i++]); //write the string and position to the next item
-				bytes.writeFloat(groceries[i]);// write the float
-				trace(i + " bytes.position is: " + bytes.position);//display the position in ByteArray
+			var inBytes:ByteArray = new ByteArray();
+			// define text area for displaying XML content
+			var myTxt:TextField = new TextField();
+			myTxt.width = 550;
+			myTxt.height = 400;
+			addChild(myTxt);
+			//display objectEncoding and file heading
+			myTxt.text = "Object encoding is: " + inBytes.objectEncoding + "\n\n" + "order file: \n\n";
+			readFileIntoByteArray("order.xml", inBytes);
+			inBytes.position = 0; // reset position to beginning
+			inBytes.uncompress(CompressionAlgorithm.DEFLATE);
+			inBytes.position = 0;//reset position to beginning
+			// read XML Object
+			var orderXML:XML = inBytes.readObject();
+			// for each node in orderXML
+			for each (var child:XML in orderXML)
+			{
+				// append child node to text area
+				myTxt.text += child + "\n";
 			}
-			trace("bytes length is: " + bytes.length);// display the length
-			bytes[bytes.length] = 84;
-			bytes[bytes.length] = 85;
-			bytes[bytes.length] = 86;
-			bytes[bytes.length] = 87;
-			bytes.position = 33;
-			trace(bytes.readUTFBytes(4));
 		}
-		
-		private function deactivate(e:Event):void   
-		{  
-			// auto-close  
-			NativeApplication.nativeApplication.exit();  
-		}  
-	} 
-} 
+		// read specified file into byte array
+		private function readFileIntoByteArray(fileName:String, data:ByteArray):void
+		{
+			var inFile:File = File.desktopDirectory; // source folder is desktop
+			inFile = inFile.resolvePath(fileName); // name of file to read
+			var inStream:FileStream = new FileStream();
+			inStream.open(inFile, FileMode.READ);
+			inStream.readBytes(data);
+			inStream.close();
+		}
+	}
+}
 
 //as_project
